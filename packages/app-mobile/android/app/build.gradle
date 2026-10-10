@@ -67,6 +67,15 @@ react {
 	autolinkLibrariesWithApp()
 }
 
+// Metro resolves generated .js before .tsx, so compile TypeScript before creating an APK bundle.
+def compileTypeScriptForAndroid = tasks.register("compileTypeScriptForAndroid", Exec) {
+    workingDir = file("${projectRoot}/../..")
+    commandLine "yarn", "tsc"
+}
+tasks.matching { it.name.startsWith("createBundle") && it.name.endsWith("JsAndAssets") }.configureEach {
+    dependsOn compileTypeScriptForAndroid
+}
+
 /**
  * Set this to true in release builds to optimize the app using [R8](https://developer.android.com/topic/performance/app-optimization/enable-app-optimization).
  */
@@ -85,6 +94,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
 		versionCode 2097820
 		versionName "3.7.11"
+        manifestPlaceholders = [usesCleartextTraffic: "false"]
+        buildConfigField "boolean", "IS_DEX_EMULATOR_TEST", "false"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
 
@@ -131,6 +142,12 @@ android {
             // Keeps symbols for better stack traces in profiler
             minifyEnabled false
             // Use release variants of dependencies that don't have profileable
+            matchingFallbacks = ['release']
+        }
+        dexTest {
+            initWith buildTypes.getByName("profileable")
+            applicationIdSuffix ".dextest"
+            buildConfigField "boolean", "IS_DEX_EMULATOR_TEST", "true"
             matchingFallbacks = ['release']
         }
     }

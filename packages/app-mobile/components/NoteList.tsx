@@ -21,6 +21,7 @@ interface NoteListProps {
 	items: NoteEntity[];
 	folders: FolderEntity[];
 	noteSelectionEnabled?: boolean;
+	dexLayout?: boolean;
 	selectedFolderId: string|null;
 }
 
@@ -90,7 +91,7 @@ class NoteListComponent extends Component<NoteListProps> {
 			return <FlatList
 				ref={ref => { this.rootRef_ = ref; }}
 				data={this.props.items}
-				renderItem={({ item, index }) => <NoteItem note={item} index={index} />}
+				renderItem={({ item, index }) => <NoteItem note={item} index={index} dexLayout={this.props.dexLayout} />}
 				keyExtractor={item => item.id}
 			/>;
 		} else {

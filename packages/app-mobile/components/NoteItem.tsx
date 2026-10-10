@@ -26,6 +26,7 @@ interface Props {
 	note: NoteEntity;
 	noteSelectionEnabled: boolean;
 	selectedNoteIds: string[];
+	dexLayout?: boolean;
 	highlightedWord?: string;
 	index?: number;
 }
@@ -196,7 +197,7 @@ const NoteItemComponent: React.FC<Props> = memo(props => {
 	const checkboxStyle = styles.checkboxStyle;
 	const listItemTextStyle = isTodo ? styles.listItemTextWithCheckbox : styles.listItemText;
 	const opacityStyle = isTodo && checkboxChecked ? styles.checkedOpacityStyle : styles.uncheckedOpacityStyle;
-	const isSelected = props.noteSelectionEnabled && props.selectedNoteIds.includes(note.id);
+	const isSelected = (props.noteSelectionEnabled || props.dexLayout) && props.selectedNoteIds.includes(note.id);
 	const showSyncDisabledIcon = isSyncDisabledConflict(note);
 	const showLockIcon = isNoteLockEnabled() && !!note.is_locked;
 

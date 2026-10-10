@@ -132,6 +132,7 @@ interface Props extends BaseProps {
 	editorNoteReloadTimeRequest: number;
 	canPublish: boolean;
 	noteVisiblePanes: string[];
+	dexSplitPreview?: boolean;
 	noteLockSessionUnlocked: boolean;
 }
 
@@ -523,6 +524,20 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 			noteBodyViewer: {
 				flex: 1,
 			},
+			dexSplitBody: {
+				flex: 1,
+				flexDirection: 'row',
+			},
+			dexSplitPane: {
+				flex: 1,
+				minWidth: 0,
+			},
+			dexSplitViewerPane: {
+				flex: 1,
+				minWidth: 0,
+				borderLeftColor: theme.dividerColor,
+				borderLeftWidth: 1,
+			},
 			toggleSpaceButtonContent: {
 				flex: 1,
 			},
@@ -617,6 +632,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 		if (isNoteLockEnabled()) eventManager.on(EventName.NoteLockNoteStateChange, this.noteLockNoteStateChange_);
 
 		await shared.initState(this);
+		if (this.props.dexSplitPreview) this.setState({ mode: 'edit' });
 
 		this.undoRedoService_ = new UndoRedoService();
 		this.undoRedoService_.on('stackChange', this.undoRedoService_stackChange);
@@ -660,6 +676,9 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 	}
 
 	public componentDidUpdate(prevProps: ComponentProps, prevState: State) {
+		if (prevProps.dexSplitPreview !== this.props.dexSplitPreview) {
+			this.setState({ mode: this.props.dexSplitPreview || this.props.noteVisiblePanes.includes('editor') ? 'edit' : 'view' });
+		}
 		if (this.doFocusUpdate_) {
 			this.doFocusUpdate_ = false;
 			this.scheduleFocusUpdate();
@@ -1884,7 +1903,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 		} else if (editorView) {
 			bodyComponent = renderPluginEditor();
 		} else {
-			if (this.state.mode === 'view') {
+			if (this.state.mode === 'view' && !this.props.dexSplitPreview) {
 				// Note: as of 2018-12-29 it's important not to display the viewer if the note body is empty,
 				// to avoid the HACK_webviewLoadingState related bug.
 				bodyComponent =
@@ -1985,6 +2004,28 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 			}
 		}
 
+		if (this.props.dexSplitPreview && this.props.editorType === EditorType.Markdown && !noteLockPanelVisible && !editorView) {
+			const preview = !note || !note.body.trim() ? null : <NoteBodyViewer
+				style={this.styles().noteBodyViewer}
+				paddingBottom={150}
+				noteBody={note.body}
+				noteMarkupLanguage={note.markup_language}
+				noteResources={this.state.noteResources}
+				highlightedKeywords={keywords}
+				noteHash={this.props.noteHash}
+				onCheckboxChange={this.onBodyViewerCheckboxChange}
+				onMarkForDownload={this.onMarkForDownload}
+				onRequestEditResource={this.onEditResource}
+				onScroll={this.onBodyViewerScroll}
+				initialScrollPercent={this.lastBodyScroll}
+			/>;
+
+			bodyComponent = <View style={this.styles().dexSplitBody}>
+				<View style={this.styles().dexSplitPane}>{bodyComponent}</View>
+				<View style={this.styles().dexSplitViewerPane}>{preview}</View>
+			</View>;
+		}
+
 		const titleContainerStyle = isTodo ? this.styles().titleContainerTodo : this.styles().titleContainer;
 
 		const dueDate = Note.dueDateObject(note);
@@ -2072,7 +2113,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 		const { editorPlugin: activeEditorPlugin } = getActivePluginEditorView(this.props.plugins, this.props.windowId);
 
 		let viewEditToggleMode = this.state.mode === 'edit' ? ViewToggleButtonMode.ShowViewer : ViewToggleButtonMode.ShowEditor;
-		if (!this.state.note || this.state.note.deleted_time > 0 || editorView || noteLockPanelVisible) {
+		if (this.props.dexSplitPreview || !this.state.note || this.state.note.deleted_time > 0 || editorView || noteLockPanelVisible) {
 			viewEditToggleMode = ViewToggleButtonMode.Hidden;
 		}
 
@@ -2157,7 +2198,7 @@ const NoteScreenWrapper = (props: Props) => {
 	);
 };
 
-const NoteScreen = connect((state: AppState) => {
+const NoteScreen = connect((state: AppState, ownProps: Pick<Props, 'dexSplitPreview'>) => {
 	const whenClause = stateToWhenClauseContext(state);
 	return {
 		windowId: state.windowId,
@@ -2181,7 +2222,7 @@ const NoteScreen = connect((state: AppState) => {
 		editorNoteReloadTimeRequest: state.editorNoteReloadTimeRequest,
 		noteVisiblePanes: state.noteVisiblePanes,
 
-		editorType: state.settings['editor.codeView'] ? EditorType.Markdown : EditorType.RichText,
+		editorType: ownProps.dexSplitPreview || state.settings['editor.codeView'] ? EditorType.Markdown : EditorType.RichText,
 
 		// What we call "beta editor" in this component is actually the (now
 		// default) CodeMirror editor. That should be refactored to make it less

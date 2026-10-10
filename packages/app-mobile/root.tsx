@@ -796,6 +796,7 @@ class AppComponent extends React.Component<AppComponentProps, AppComponentState>
 					<SafeAreaView style={{ flex: 1 }} titleBarUnderlayColor={theme.backgroundColor2}>
 						<SideMenu
 							menu={sideMenuContent}
+							permanentMenu={<SideMenuContent/>}
 							toleranceX={4}
 							minHorizontalSwipe={10}
 							openMenuOffset={this.state.sideMenuWidth}

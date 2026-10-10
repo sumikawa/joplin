@@ -13,6 +13,7 @@ import usePrevious from '@joplin/lib/hooks/usePrevious';
 import { Theme } from '@joplin/lib/themes/type';
 import { useMemo } from 'react';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
+import useDexMode, { minDexWindowWidth } from '../utils/useDexMode';
 
 interface Props {
 	route: Route;
@@ -26,6 +27,14 @@ const useStyles = (theme: Theme) => {
 	return useMemo(() => {
 		return StyleSheet.create({
 			keyboardAvoidingView: { flex: 1, backgroundColor: theme.backgroundColor },
+			mobileRoot: { flex: 1 },
+			mobilePane: { flex: 1 },
+			hiddenPane: { display: 'none' },
+			dexRoot: { flex: 1, flexDirection: 'row', backgroundColor: theme.backgroundColor },
+			dexNotes: { width: 300, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: theme.dividerColor },
+			dexNotesCompact: { width: 220 },
+			dexWorkspace: { flex: 1, flexDirection: 'row' },
+			dexNotePane: { flex: 1, minWidth: 0 },
 		});
 	}, [theme]);
 };
@@ -34,6 +43,8 @@ const useStyles = (theme: Theme) => {
 const AppNavComponent: React.FC<Props> = (props) => {
 	const keyboardState = useKeyboardState();
 	const safeAreaPadding = useSafeAreaInsets();
+	const { isDexMode: dexMode, windowWidth } = useDexMode();
+	const isDexLayout = Platform.OS === 'android' && dexMode && windowWidth >= minDexWindowWidth;
 
 	if (!props.route) throw new Error('Route must not be null');
 
@@ -68,15 +79,27 @@ const AppNavComponent: React.FC<Props> = (props) => {
 		(Platform.OS === 'android' && Platform.Version < 35)
 		|| Platform.OS === 'ios';
 	const autocompletionBarPadding = keyboardState.keyboardVisible && keyboardAvoidingViewEnabled ? safeAreaPadding.top : 0;
+	const isNoteRoute = route.routeName === 'Note';
+	const isSearchPane = route.routeName === 'Search' || (isNoteRoute && searchScreenLoaded);
+	const listPaneVisible = notesScreenVisible || searchScreenVisible;
 
+	// Keep the note screen at the same place in the React tree when moving between
+	// phone and desktop displays, so pending edits and editor state survive the move.
 	return (
 		<KeyboardAvoidingView
 			style={styles.keyboardAvoidingView}
 			enabled={keyboardAvoidingViewEnabled}
 		>
-			<NotesScreen visible={notesScreenVisible} />
-			{searchScreenLoaded && <SearchScreen visible={searchScreenVisible} />}
-			{!notesScreenVisible && !searchScreenVisible && <Screen navigation={{ state: route }} themeId={props.themeId} dispatch={props.dispatch} />}
+			<View style={isDexLayout ? styles.dexRoot : styles.mobileRoot}>
+				<View style={isDexLayout ? [styles.dexNotes, windowWidth < 1100 && styles.dexNotesCompact] : listPaneVisible ? styles.mobilePane : styles.hiddenPane}>
+					<NotesScreen visible={isDexLayout ? !isSearchPane : notesScreenVisible} dexLayout={isDexLayout} />
+					{searchScreenLoaded && <SearchScreen visible={isDexLayout ? isSearchPane : searchScreenVisible} />}
+				</View>
+				<View style={isDexLayout ? styles.dexWorkspace : listPaneVisible ? styles.hiddenPane : styles.mobilePane}>
+					{Screen && <Screen navigation={{ state: route }} themeId={props.themeId} dispatch={props.dispatch} {...(isNoteRoute ? { dexSplitPreview: isDexLayout } : {})} />}
+					{isDexLayout && listPaneVisible && <View style={styles.dexNotePane} />}
+				</View>
+			</View>
 			<View style={{ height: autocompletionBarPadding }} />
 		</KeyboardAvoidingView>
 	);

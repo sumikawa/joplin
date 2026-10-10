@@ -28,6 +28,7 @@ interface Props {
 
 	themeId: number;
 	visible: boolean;
+	dexLayout?: boolean;
 
 	folders: FolderEntity[];
 	tags: TagEntity[];
@@ -282,7 +283,7 @@ class NotesScreenComponent extends BaseScreenComponent<ComponentProps, State> {
 		if (!parent) {
 			return (
 				<View style={rootStyle}>
-					<ScreenHeader title={title} showSideMenuButton={true} showBackButton={false} />
+					<ScreenHeader title={title} showSideMenuButton={!this.props.dexLayout} showBackButton={false} />
 				</View>
 			);
 		}
@@ -321,9 +322,9 @@ class NotesScreenComponent extends BaseScreenComponent<ComponentProps, State> {
 					sortButton_press={this.sortButton_press}
 					folderPickerOptions={this.folderPickerOptions()}
 					showSearchButton={true}
-					showSideMenuButton={true}
+					showSideMenuButton={!this.props.dexLayout}
 				/>
-				<NoteList />
+				<NoteList dexLayout={this.props.dexLayout} />
 				{actionButtonComp}
 			</AccessibleView>
 		);

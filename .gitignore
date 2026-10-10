@@ -1106,6 +1106,7 @@ packages/app-mobile/utils/testing/mockPluginServiceSetup.js
 packages/app-mobile/utils/testing/setupGlobalStore.js
 packages/app-mobile/utils/testing/testingLibrary.js
 packages/app-mobile/utils/types.js
+packages/app-mobile/utils/useDexMode.js
 packages/app-mobile/web/serviceWorker.js
 packages/app-mobile/web/webpack.config.js
 packages/default-plugins/build.js

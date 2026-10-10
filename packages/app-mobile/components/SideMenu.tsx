@@ -7,6 +7,14 @@ import AccessibleView from './accessibility/AccessibleView';
 import { _ } from '@joplin/lib/locale';
 import useReduceMotionEnabled from '../utils/hooks/useReduceMotionEnabled';
 import { themeStyle } from './global-style';
+import useDexMode, { minDexWindowWidth } from '../utils/useDexMode';
+
+const dexSidebarStyles = StyleSheet.create({
+	root: { flex: 1, flexDirection: 'row' },
+	menu: { width: 250 },
+	compactMenu: { width: 180 },
+	content: { flex: 1 },
+});
 
 export enum SideMenuPosition {
 	Left = 'left',
@@ -20,6 +28,7 @@ interface Props {
 	isOpen: boolean;
 
 	menu: React.ReactNode;
+	permanentMenu?: React.ReactNode;
 	children: React.ReactNode|React.ReactNode[];
 	toleranceX: number;
 	minHorizontalSwipe: number;
@@ -175,6 +184,8 @@ const useAnimations = ({ menuWidth, isLeftMenu, open }: UseAnimationsProps) => {
 
 const SideMenuComponent: React.FC<Props> = props => {
 	const [open, setIsOpen] = useState(false);
+	const { isDexMode: dexMode, windowWidth } = useDexMode();
+	const isDexLayout = dexMode && windowWidth >= minDexWindowWidth;
 
 	useEffect(() => {
 		setIsOpen(props.isOpen);
@@ -283,36 +294,35 @@ const SideMenuComponent: React.FC<Props> = props => {
 	}, [open, beginAnimating]);
 
 	const styles = useStyles({ themeId: props.themeId, menuOpenFraction, menuWidth, isLeftMenu });
-
 	const menuComponent = (
 		<AccessibleView
-			inert={!open}
-			style={styles.menuWrapper}
+			inert={!isDexLayout && !open}
+			style={isDexLayout ? windowWidth < 1100 ? dexSidebarStyles.compactMenu : dexSidebarStyles.menu : styles.menuWrapper}
 			testID='menu-wrapper'
 		>
 			<AccessibleView
 				// Auto-focuses an empty view at the beginning of the sidemenu -- if we instead
 				// focus the container view, VoiceOver fails to focus to any components within
 				// the sidebar.
-				refocusCounter={!open ? 1 : undefined}
+				refocusCounter={!isDexLayout && !open ? 1 : undefined}
 				testID='sidemenu-menu-focus-region'
 			/>
 
-			{props.menu}
+			{isDexLayout ? props.permanentMenu || props.menu : props.menu}
 		</AccessibleView>
 	);
 
 	const contentComponent = (
 		<AccessibleView
-			inert={open}
+			inert={!isDexLayout && open}
 			style={styles.contentWrapper}
 			testID='content-wrapper'
 		>
-			<AccessibleView refocusCounter={open ? 1 : undefined} testID='sidemenu-content-focus-region' />
+			<AccessibleView refocusCounter={!isDexLayout && open ? 1 : undefined} testID='sidemenu-content-focus-region' />
 			{props.children}
 		</AccessibleView>
 	);
-	const closeButtonOverlay = (open || animating) ? (
+	const closeButtonOverlay = !isDexLayout && (open || animating) ? (
 		<Animated.View
 			style={styles.closeButtonOverlay}
 		>
@@ -327,12 +337,12 @@ const SideMenuComponent: React.FC<Props> = props => {
 
 	return (
 		<View
-			onLayout={onLayoutChange}
-			style={styles.mainContainer}
-			{...panResponder.panHandlers}
+			onLayout={isDexLayout ? undefined : onLayoutChange}
+			style={isDexLayout ? dexSidebarStyles.root : styles.mainContainer}
+			{...(isDexLayout ? {} : panResponder.panHandlers)}
 		>
 			{menuComponent}
-			<Animated.View style={styles.contentOuterWrapper}>
+			<Animated.View style={isDexLayout ? dexSidebarStyles.content : styles.contentOuterWrapper}>
 				{contentComponent}
 				{closeButtonOverlay}
 			</Animated.View>

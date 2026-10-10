@@ -8,7 +8,11 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import android.os.Build
 import android.os.Bundle
+import android.content.Intent
 import android.view.View
+import com.facebook.react.ReactApplication
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import net.cozic.joplin.dex.DexModeDetector
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
@@ -26,6 +30,24 @@ class MainActivity : ReactActivity() {
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled))
+
+  override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+    super.onConfigurationChanged(newConfig)
+    emitDexMode(newConfig)
+  }
+
+  private fun emitDexMode(newConfig: android.content.res.Configuration) {
+    val reactContext = (application as? ReactApplication)?.reactHost?.currentReactContext
+    val windowState = DexModeDetector.windowState(this, newConfig)
+    reactContext?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      ?.emit("dexModeChanged", windowState)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    emitDexMode(resources.configuration)
+  }
 
   /**
    * This is a workaround to fix the upstream issue https://github.com/facebook/react-native/issues/49759#issuecomment-2918934967

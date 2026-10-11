@@ -138,7 +138,7 @@ jest.mock('@react-native-documents/picker', () => ({ default: { } }));
 // that better supports our automated testing environment.
 jest.doMock('@expo/vector-icons/MaterialCommunityIcons', () => {
 	throw new Error('Not supported in testing environments.');
-});
+}, { virtual: true });
 
 const mockIconLibrary = (libraryName, exportName) => {
 	jest.doMock(libraryName, () => {

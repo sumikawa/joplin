@@ -20,10 +20,10 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-  compileSdkVersion safeExtGet('SafX_compileSdkVersion', 31)
+  compileSdkVersion safeExtGet('SafX_compileSdkVersion', safeExtGet('compileSdkVersion', 36))
   defaultConfig {
-    minSdkVersion safeExtGet('SafX_minSdkVersion', 21)
-    targetSdkVersion safeExtGet('SafX_targetSdkVersion', 31)
+    minSdkVersion safeExtGet('SafX_minSdkVersion', safeExtGet('minSdkVersion', 24))
+    targetSdkVersion safeExtGet('SafX_targetSdkVersion', safeExtGet('targetSdkVersion', 36))
     versionCode 1
     versionName "1.0"
 

@@ -8,7 +8,7 @@ import checkPermissions from '../../../utils/checkPermissions';
 import NoteEditor from '../../NoteEditor/NoteEditor';
 import { EditorControl } from '../../NoteEditor/types';
 import * as React from 'react';
-import { Keyboard, View, TextInput, StyleSheet, Linking, Share, NativeSyntheticEvent, useWindowDimensions } from 'react-native';
+import { Keyboard, View, TextInput, StyleSheet, Linking, Share, NativeSyntheticEvent, useWindowDimensions, TextStyle, ViewStyle } from 'react-native';
 import { Platform, PermissionsAndroid } from 'react-native';
 import { connect } from 'react-redux';
 import Note from '@joplin/lib/models/Note';
@@ -97,6 +97,22 @@ import { MenuOptionStyle, MenuOptionButton } from '../../BottomDrawerMenu';
 const emptyArray: never[] = [];
 
 const logger = Logger.create('screens/Note');
+
+type NoteStyles = {
+	screen: ViewStyle;
+	bodyTextInput: TextStyle;
+	noteBodyViewer: ViewStyle;
+	dexSplitBody: ViewStyle;
+	dexSplitPane: ViewStyle;
+	dexSplitViewerPane: ViewStyle;
+	toggleSpaceButtonContent: ViewStyle;
+	checkbox: ViewStyle & Pick<TextStyle, 'color'>;
+	markdownButtons: TextStyle;
+	noteBodyViewerPreview?: ViewStyle;
+	titleContainer?: ViewStyle;
+	titleContainerTodo?: ViewStyle;
+	titleTextInput?: TextStyle;
+};
 
 interface InsertTextOptions {
 	newLine?: boolean;
@@ -190,7 +206,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 
 	private saveActionQueues_: Record<string, AsyncActionQueue>;
 	private doFocusUpdate_: boolean;
-	private styles_: Record<string, ReturnType<typeof StyleSheet.create>>;
+	private styles_: Record<string, NoteStyles>;
 	private editorRef: RefObject<EditorControl>;
 	private titleTextFieldRef: RefObject<TextInput>;
 	private navHandler: OnNavigateCallback;
@@ -496,8 +512,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 		this.styles_ = {};
 
 		// TODO: Clean up these style names and nesting
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Heterogeneous style entries (view/text/icon styles spread together); typed split would force restructuring
-		const styles: Record<string, any> = {
+		const styles: NoteStyles = {
 			screen: {
 				flex: 1,
 				backgroundColor: theme.backgroundColor,

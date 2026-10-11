@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { TouchableHighlight, StyleSheet, TextStyle, AccessibilityInfo } from 'react-native';
+import { TouchableHighlight, StyleSheet, TextStyle, ViewStyle, AccessibilityInfo } from 'react-native';
 import Icon from './Icon';
 import { _ } from '@joplin/lib/locale';
 
@@ -9,11 +9,11 @@ interface Props {
 	accessibilityLabel?: string;
 	accessibilityHint?: string;
 	onChange?: (checked: boolean)=> void;
-	style?: TextStyle;
+	style?: ViewStyle & Pick<TextStyle, 'color'>;
 	iconStyle?: TextStyle;
 }
 
-const useStyles = (baseStyles: TextStyle|undefined, iconStyle: TextStyle|undefined) => {
+const useStyles = (baseStyles: (ViewStyle & Pick<TextStyle, 'color'>)|undefined, iconStyle: TextStyle|undefined) => {
 	return useMemo(() => {
 		return StyleSheet.create({
 			container: {

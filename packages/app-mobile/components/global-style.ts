@@ -40,7 +40,7 @@ export type ThemeStyle = BaseTheme & typeof baseStyle & {
 	itemMarginBottom: number;
 	itemMarginTop: number;
 	icon: TextStyle;
-	lineInput: ViewStyle;
+	lineInput: TextStyle;
 	buttonRow: ViewStyle;
 	normalText: TextStyle;
 	urlText: TextStyle;
@@ -96,7 +96,7 @@ function extraStyles(theme: BaseTheme) {
 		fontWeight: 'bold',
 	};
 
-	const headerWrapperStyle: TextStyle = {
+	const headerWrapperStyle: ViewStyle = {
 		backgroundColor: theme.headerBackgroundColor,
 	};
 

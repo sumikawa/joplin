@@ -1,0 +1,125 @@
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index c7502fcefd98854e52776f6a02470bc35b9e9df9..d72bde96c6e6b1485bb5fd16daa10db2720ad511 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -1,10 +1,10 @@
+ [versions]
+-agp = "8.12.0"
++agp = "9.2.1"
+ gson = "2.8.9"
+ guava = "31.0.1-jre"
+ javapoet = "1.13.0"
+ junit = "4.13.2"
+-kotlin = "2.1.20"
++kotlin = "2.4.10"
+ assertj = "3.25.1"
+ ktfmt = "0.22.0"
+ 
+diff --git a/react-native-gradle-plugin/build.gradle.kts b/react-native-gradle-plugin/build.gradle.kts
+index 85dadeba0c42cf0b09b964eb00b3e2c12b5ed6e9..f2786ebb2559f5407a739c8b217da3a119ec41d5 100644
+--- a/react-native-gradle-plugin/build.gradle.kts
++++ b/react-native-gradle-plugin/build.gradle.kts
+@@ -64,7 +64,7 @@ kotlin { jvmToolchain(17) }
+ 
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
++    apiVersion.set(KotlinVersion.KOTLIN_2_4)
+     // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+     allWarningsAsErrors.set(
+diff --git a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt
+index e7859ff6ad0b5334795452a18829ffb8f6d6d91a..678e045986adbdb766af122052946aedd1b673ca 100644
+--- a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt
++++ b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/ReactPlugin.kt
+@@ -98,8 +98,12 @@ class ReactPlugin : Plugin<Project> {
+     }
+ 
+     // Library Only Configuration
+-    configureBuildConfigFieldsForLibraries(project)
+-    configureNamespaceForLibraries(project)
++    // Register these callbacks once, before any library DSL is finalized.
++    if (!rootExtension.libraryConfigurationApplied) {
++      rootExtension.libraryConfigurationApplied = true
++      configureBuildConfigFieldsForLibraries(project)
++      configureNamespaceForLibraries(project)
++    }
+     project.pluginManager.withPlugin("com.android.library") {
+       configureCodegen(project, extension, rootExtension, isLibrary = true)
+     }
+diff --git a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/internal/PrivateReactExtension.kt b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/internal/PrivateReactExtension.kt
+index 26174c0ce0de01e0f7c83ab0a7b92661884f513f..30148ac6fb503a51a293f0457a637f7ad567f80a 100644
+--- a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/internal/PrivateReactExtension.kt
++++ b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/internal/PrivateReactExtension.kt
+@@ -24,6 +24,8 @@ import org.gradle.api.provider.Property
+  */
+ abstract class PrivateReactExtension @Inject constructor(project: Project) {
+ 
++  var libraryConfigurationApplied: Boolean = false
++
+   private val objects = project.objects
+ 
+   val root: DirectoryProperty =
+diff --git a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/utils/AgpConfiguratorUtils.kt b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/utils/AgpConfiguratorUtils.kt
+index c4a7b359d5427ff3775774a41ff13eee8ac22016..8d20777979a640ac3ba1d9335e757e1c3a752270 100644
+--- a/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/utils/AgpConfiguratorUtils.kt
++++ b/react-native-gradle-plugin/src/main/kotlin/com/facebook/react/utils/AgpConfiguratorUtils.kt
+@@ -9,7 +9,7 @@ package com.facebook.react.utils
+ 
+ import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+ import com.android.build.api.variant.LibraryAndroidComponentsExtension
+-import com.android.build.gradle.LibraryExtension
++import com.android.build.gradle.api.AndroidSourceFile
+ import com.facebook.react.ReactExtension
+ import com.facebook.react.utils.ProjectUtils.isEdgeToEdgeEnabled
+ import com.facebook.react.utils.ProjectUtils.isHermesEnabled
+@@ -118,8 +118,8 @@ internal object AgpConfiguratorUtils {
+             .getByType(LibraryAndroidComponentsExtension::class.java)
+             .finalizeDsl { ext ->
+               if (ext.namespace == null) {
+-                val android = subproject.extensions.getByType(LibraryExtension::class.java)
+-                val manifestFile = android.sourceSets.getByName("main").manifest.srcFile
++                val manifest = ext.sourceSets.getByName("main").manifest as AndroidSourceFile
++                val manifestFile = manifest.srcFile
+ 
+                 manifestFile
+                     .takeIf { it.exists() }
+diff --git a/settings-plugin/build.gradle.kts b/settings-plugin/build.gradle.kts
+index 2fbeafd502c98ba81856d3a1579f3b0d8bc60b2d..e1b9e3829b641143b015ea175a605b1388e13c91 100644
+--- a/settings-plugin/build.gradle.kts
++++ b/settings-plugin/build.gradle.kts
+@@ -54,7 +54,7 @@ kotlin { jvmToolchain(17) }
+ 
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
++    apiVersion.set(KotlinVersion.KOTLIN_2_4)
+     // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+     allWarningsAsErrors.set(
+diff --git a/shared/build.gradle.kts b/shared/build.gradle.kts
+index 315984875ad8ea2de476d4ab895932d2e9d47b0b..3d2dcbab3d3817175c00c0cf010df4f2d88e91fb 100644
+--- a/shared/build.gradle.kts
++++ b/shared/build.gradle.kts
+@@ -33,7 +33,7 @@ kotlin { jvmToolchain(17) }
+ 
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
++    apiVersion.set(KotlinVersion.KOTLIN_2_4)
+     // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+     allWarningsAsErrors.set(
+diff --git a/shared-testutil/build.gradle.kts b/shared-testutil/build.gradle.kts
+index 26173fb55578417118679d6243de84146b6c8a9f..3af108f6c826611a94450e06d9720919a539b0fb 100644
+--- a/shared-testutil/build.gradle.kts
++++ b/shared-testutil/build.gradle.kts
+@@ -27,7 +27,7 @@ kotlin { jvmToolchain(17) }
+ 
+ tasks.withType<KotlinCompile>().configureEach {
+   compilerOptions {
+-    apiVersion.set(KotlinVersion.KOTLIN_1_8)
++    apiVersion.set(KotlinVersion.KOTLIN_2_4)
+     // See comment above on JDK 11 support
+     jvmTarget.set(JvmTarget.JVM_11)
+     allWarningsAsErrors.set(

@@ -235,9 +235,9 @@ const useHeaderLabel = (props: HeaderLabelProps) => {
 interface StyleProps {
 	itemCount: number;
 	headerLayout: LayoutRectangle;
-	headerStyle: ViewStyle|undefined;
+	headerStyle: TextStyle|undefined;
 	headerWrapperStyle: ViewStyle|undefined;
-	itemStyle: ViewStyle|undefined;
+	itemStyle: TextStyle|undefined;
 	itemWrapperStyle: ViewStyle|undefined;
 	itemListStyle: ViewStyle|undefined;
 }

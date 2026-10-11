@@ -1,0 +1,59 @@
+diff --git a/expo-module-gradle-plugin/build.gradle.kts b/expo-module-gradle-plugin/build.gradle.kts
+index 837bb4ff6a6ea984c7f78f90cf131be46d3e92fa..0ed80464ad808c1eae872372bde81d43a4511ef4 100644
+--- a/expo-module-gradle-plugin/build.gradle.kts
++++ b/expo-module-gradle-plugin/build.gradle.kts
+@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+ 
+ plugins {
+-  kotlin("jvm") version "2.1.20"
++  kotlin("jvm") version "2.4.10"
+   id("java-gradle-plugin")
+ }
+ 
+@@ -29,7 +29,7 @@ val isExpoAutolinkingSettingsPluginAvailable = expoAutolinkingSettingsPlugin ==
+ 
+ dependencies {
+   implementation(gradleApi())
+-  compileOnly("com.android.tools.build:gradle:8.5.0")
++  compileOnly("com.android.tools.build:gradle:9.2.1")
+   implementation("com.facebook.react:react-native-gradle-plugin")
+   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+   implementation("io.github.lukmccall.pika:pika-gradle:0.3.2")
+diff --git a/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/ProjectConfiguration.kt b/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/ProjectConfiguration.kt
+index cfc300c21ed142f0f25813a9f349f5068e72c991..8e96facb4791aaae64b9c6c12527d4fd3fc44c41 100644
+--- a/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/ProjectConfiguration.kt
++++ b/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/ProjectConfiguration.kt
+@@ -32,6 +32,8 @@ internal fun Project.applyDefaultPlugins() {
+ }
+ 
+ internal fun Project.applyPikaPlugin() {
++  // A disabled compiler plugin must not resolve a Kotlin-version-specific artifact.
++  if (findProperty("expo.enableCompileTimeOptimization")?.toString() == "false") return
+   if (!plugins.hasPlugin("io.github.lukmccall.pika")) {
+     plugins.apply("io.github.lukmccall.pika")
+   }
+@@ -42,7 +44,7 @@ internal fun Project.applyPikaPlugin() {
+ }
+ 
+ internal fun Project.configurePika(shouldBeEnabled: Boolean = true) {
+-  val pika = extensions.getByType(PikaGradleExtension::class.java)
++  val pika = extensions.findByType(PikaGradleExtension::class.java) ?: return
+   pika.enabled = shouldBeEnabled
+ }
+ 
+diff --git a/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/android/AndroidLibraryExtension.kt b/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/android/AndroidLibraryExtension.kt
+index 9bfae8d7961d6f63c1b17c1b0d4f01557e15a424..dce3c94a7e85494ef6fba36577fff4a1597d0ffb 100644
+--- a/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/android/AndroidLibraryExtension.kt
++++ b/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/android/AndroidLibraryExtension.kt
+@@ -6,8 +6,9 @@ internal fun LibraryExtension.applySDKVersions(compileSdk: Int, minSdk: Int, tar
+   this.compileSdk = compileSdk
+   defaultConfig {
+     this@defaultConfig.minSdk = minSdk
+-    this@defaultConfig.targetSdk = targetSdk
+   }
++  lint.targetSdk = targetSdk
++  testOptions.targetSdk = targetSdk
+ }
+ 
+ internal fun LibraryExtension.applyLinterOptions() {

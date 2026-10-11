@@ -119,7 +119,7 @@ const useStyles = ({ theme, menuType, dragging, alignment, draggable, dragOffset
 						}),
 					},
 					{ perspective: 1000 },
-				],
+				] as const,
 			},
 			contentContainer: {
 				flexDirection: 'row',

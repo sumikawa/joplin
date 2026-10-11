@@ -72,7 +72,7 @@ const useStyles = ({ themeId, isLeftMenu, menuWidth, menuOpenFraction }: UseStyl
 					}),
 					// The RN Animation docs suggests setting "perspective" while setting other transform styles:
 					// https://reactnative.dev/docs/animations#bear-in-mind
-				}, { perspective: 1000 }],
+				}, { perspective: 1000 }] as const,
 			},
 			contentWrapper: {
 				display: 'flex',

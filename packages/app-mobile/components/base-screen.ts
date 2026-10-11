@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { themeStyle } from './global-style';
 
-const rootStyles_: Record<number, ReturnType<typeof StyleSheet.create>> = {};
+const rootStyles_: Record<number, { root: ViewStyle }> = {};
 
 class BaseScreenComponent<Props, State> extends React.Component<Props, State> {
 

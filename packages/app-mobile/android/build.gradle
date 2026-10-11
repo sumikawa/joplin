@@ -2,6 +2,7 @@
 
 buildscript {
     ext {
+        androidGradlePluginVersion = "9.2.1"
         buildToolsVersion = "36.0.0"
         minSdkVersion = 24
 
@@ -9,20 +10,32 @@ buildscript {
         targetSdkVersion = 36
 
         ndkVersion = "27.1.12297006"
-        kotlinVersion = "2.1.20"
+        kotlinVersion = "2.4.10"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
+        classpath("com.android.tools.build:gradle:${androidGradlePluginVersion}")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
     }
 }
 
 allprojects {
+    // Native libraries declare their own plugin versions. Use the application's
+    // toolchain consistently so an older plugin cannot load removed Gradle APIs.
+    buildscript.configurations.configureEach {
+        resolutionStrategy.eachDependency { dependency ->
+            if (dependency.requested.group == "com.android.tools.build" && dependency.requested.name == "gradle") {
+                dependency.useVersion(rootProject.ext.androidGradlePluginVersion)
+            }
+            if (dependency.requested.group == "org.jetbrains.kotlin" && dependency.requested.name == "kotlin-gradle-plugin") {
+                dependency.useVersion(rootProject.ext.kotlinVersion)
+            }
+        }
+    }
     repositories {
         google()
         mavenCentral()

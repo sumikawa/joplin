@@ -22,7 +22,7 @@ interface Props extends Omit<ButtonProps, 'item'|'onPress'|'children'|'style'> {
 	themeId: number;
 	type: ButtonType;
 	size?: ButtonSize;
-	style?: TextStyle;
+	style?: ViewStyle;
 	onPress: ()=> void;
 	children: ReactNode;
 }

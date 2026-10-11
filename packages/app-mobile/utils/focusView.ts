@@ -1,6 +1,6 @@
 import { focus } from '@joplin/lib/utils/focusHandler';
 import Logger from '@joplin/utils/Logger';
-import { AccessibilityInfo, findNodeHandle, Platform, UIManager, View } from 'react-native';
+import { AccessibilityInfo, findNodeHandle, Platform, UIManager, View, TextInput } from 'react-native';
 
 const logger = Logger.create('focusView');
 
@@ -9,7 +9,7 @@ interface Options {
 	scrollIntoView?: boolean;
 }
 
-const focusView = (source: string, view: View|HTMLElement, { scrollIntoView = true }: Options = {}) => {
+const focusView = (source: string, view: View|TextInput|HTMLElement, { scrollIntoView = true }: Options = {}) => {
 	const autoFocus = () => {
 		if (Platform.OS === 'web') {
 			if (!scrollIntoView && view instanceof HTMLElement) {

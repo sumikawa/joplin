@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PureComponent, ReactElement } from 'react';
 import { connect } from 'react-redux';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import BackButtonService from '../../services/BackButtonService';
 import NavService from '@joplin/lib/services/NavService';
 import { _, _n } from '@joplin/lib/locale';
@@ -35,7 +35,27 @@ export { MenuOption, MenuOptionStyle };
 const PADDING_V = 10;
 
 type OnPressCallback=()=> void;
-type ScreenHeaderStyles = ReturnType<typeof StyleSheet.create>;
+
+type ScreenHeaderStyles = {
+	outerContainer: ViewStyle;
+	innerContainer: ViewStyle;
+	aboveHeader: ViewStyle;
+	sideMenuButton: ViewStyle;
+	iconButton: ViewStyle;
+	saveButton: ViewStyle;
+	saveButtonText: TextStyle;
+	savedButtonIcon: TextStyle;
+	saveButtonIcon: TextStyle;
+	contextMenuTrigger: TextStyle;
+	titleText: TextStyle;
+	viewToggleButton: ViewStyle;
+	viewToggleIcon: TextStyle;
+	topIcon?: TextStyle;
+	backButton?: ViewStyle;
+	backButtonDisabled?: ViewStyle;
+	saveButtonDisabled?: ViewStyle;
+	iconButtonDisabled?: ViewStyle;
+};
 
 export interface FolderPickerOptions {
 	visible: boolean;
@@ -94,7 +114,7 @@ interface ScreenHeaderState {
 }
 
 class ScreenHeaderComponent extends PureComponent<ScreenHeaderProps, ScreenHeaderState> {
-	private cachedStyles: Record<number, ReturnType<typeof StyleSheet.create>>;
+	private cachedStyles: Record<number, ScreenHeaderStyles>;
 	public constructor(props: ScreenHeaderProps) {
 		super(props);
 		this.cachedStyles = {};
@@ -107,7 +127,7 @@ class ScreenHeaderComponent extends PureComponent<ScreenHeaderProps, ScreenHeade
 
 		const theme = themeStyle(themeId);
 
-		const styleObject: Record<string, ViewStyle | TextStyle | ImageStyle> = {
+		const styleObject: ScreenHeaderStyles = {
 			outerContainer: {
 				flexDirection: 'column',
 			},

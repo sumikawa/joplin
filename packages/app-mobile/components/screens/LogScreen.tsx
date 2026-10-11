@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { FlatList, View, Text, Button, StyleSheet, Platform } from 'react-native';
+import { FlatList, View, Text, Button, StyleSheet, Platform, TextStyle, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 import { reg } from '@joplin/lib/registry';
 import { ScreenHeader } from '../ScreenHeader';
@@ -18,6 +18,13 @@ import shareFile from '../../utils/shareFile';
 
 const logger = Logger.create('LogScreen');
 
+type LogStyles = {
+	row: ViewStyle;
+	rowText: TextStyle;
+	rowTextError?: TextStyle;
+	rowTextWarn?: TextStyle;
+};
+
 interface Props {
 	themeId: number;
 	navigation: { state: { defaultFilter?: string } };
@@ -31,7 +38,7 @@ interface State {
 
 class LogScreenComponent extends BaseScreenComponent<Props, State> {
 	private readonly menuOptions_: MenuOption[];
-	private styles_: Record<number, ReturnType<typeof StyleSheet.create>>;
+	private styles_: Record<number, LogStyles>;
 	private readonly logListRef_ = React.createRef<FlatList>();
 
 	public static navigationOptions(): { header: null } {
@@ -115,8 +122,7 @@ class LogScreenComponent extends BaseScreenComponent<Props, State> {
 
 		const theme = themeStyle(this.props.themeId);
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Heterogeneous style entries (row + rowText, then rowTextError/Warn spread off rowText); typed split would force restructuring
-		const styles: Record<string, any> = {
+		const styles: LogStyles = {
 			row: {
 				flexDirection: 'row',
 				paddingLeft: 1,

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ViewStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 import { Text } from 'react-native-paper';
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 	visible: boolean;
 }
 
-const style: ViewStyle = {
+const style: TextStyle = {
 	margin: 12,
 	marginTop: 17,
 	marginBottom: 4,

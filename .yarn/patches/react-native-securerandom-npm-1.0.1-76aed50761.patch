@@ -1,0 +1,21 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 4e725c3693f7225134b9b290eee28b84e82c44f5..a174ea411423cafc7fd5de40f1a830da58002ace 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -6,7 +6,6 @@ buildscript {
+         repositories {
+             google()
+             mavenCentral()
+-            jcenter()
+         }
+ 
+         dependencies {
+@@ -56,7 +55,7 @@ repositories {
+                 excludeGroup "com.facebook.react"
+             }
+         }
+-    jcenter()
++    mavenCentral()
+ }
+ 
+ dependencies {

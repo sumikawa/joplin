@@ -28,7 +28,7 @@ export interface ConfigScreenStyleSheet {
 
 	switchSettingText: TextStyle;
 	switchSettingContainer: ViewStyle;
-	switchSettingControl: TextStyle;
+	switchSettingControl: ViewStyle;
 
 	sidebarButton: SidebarButtonStyle;
 	sidebarIcon: TextStyle;
@@ -201,8 +201,8 @@ const configScreenStyles = (themeId: number): ConfigScreenStyles => {
 		},
 
 		switchSettingControl: {
-			...settingControlStyle,
-			color: undefined,
+			borderBottomWidth: settingControlStyle.borderBottomWidth,
+			borderBottomColor: settingControlStyle.borderBottomColor,
 			flex: 0,
 			flexBasis: 'auto',
 		},

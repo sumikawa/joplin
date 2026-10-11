@@ -4,7 +4,7 @@ import { Component } from 'react';
 
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { FlatList, Text, StyleSheet, Button, View } from 'react-native';
+import { FlatList, Text, StyleSheet, Button, View, TextStyle, ViewStyle } from 'react-native';
 import { FolderEntity, NoteEntity } from '@joplin/lib/services/database/types';
 import { AppState } from '../utils/types';
 import getEmptyFolderMessage from '@joplin/lib/components/shared/NoteList/getEmptyFolderMessage';
@@ -13,6 +13,11 @@ import Folder from '@joplin/lib/models/Folder';
 import { _ } from '@joplin/lib/locale';
 import NoteItem from './NoteItem';
 import { themeStyle } from './global-style';
+
+type NoteListStyles = {
+	noItemMessage: TextStyle;
+	noNotebookView: ViewStyle;
+};
 
 interface NoteListProps {
 	themeId: number;
@@ -27,8 +32,7 @@ interface NoteListProps {
 
 class NoteListComponent extends Component<NoteListProps> {
 	private rootRef_: FlatList;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- StyleSheet.NamedStyles<T> requires T to be the style record being passed; `any` matches the existing pattern in other mobile components
-	private styles_: Record<string, StyleSheet.NamedStyles<any>>;
+	private styles_: Record<string, NoteListStyles>;
 
 	public constructor(props: NoteListProps) {
 		super(props);
@@ -50,7 +54,7 @@ class NoteListComponent extends Component<NoteListProps> {
 		if (this.styles_[themeId]) return this.styles_[themeId];
 		this.styles_ = {};
 
-		const styles = {
+		const styles: NoteListStyles = {
 			noItemMessage: {
 				paddingLeft: theme.marginLeft,
 				paddingRight: theme.marginRight,

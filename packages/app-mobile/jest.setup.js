@@ -72,6 +72,26 @@ jest.mock('./components/CameraView/Camera', () => {
 	return require('./components/CameraView/Camera/index.jest');
 });
 
+// The React Native Modal mock never calls onDismiss, but the real Modal on iOS does when close
+// Tests run as iOS by default so this mock calls it too.
+jest.mock('react-native/Libraries/Modal/Modal', () => {
+	const React = require('react');
+	const MockModal = jest.requireActual('@react-native/jest-preset/jest/mocks/Modal').default;
+	const Modal = (props) => {
+		const wasVisibleRef = React.useRef(props.visible);
+		const onDismissRef = React.useRef(props.onDismiss);
+		onDismissRef.current = props.onDismiss;
+		React.useEffect(() => {
+			if (wasVisibleRef.current && !props.visible) {
+				onDismissRef.current?.();
+			}
+			wasVisibleRef.current = props.visible;
+		}, [props.visible]);
+		return React.createElement(MockModal, props);
+	};
+	return { __esModule: true, default: Modal };
+});
+
 jest.mock('@react-native-clipboard/clipboard', () => {
 	return { getString: jest.fn(), setString: jest.fn() };
 });
@@ -133,12 +153,6 @@ jest.mock('react-native-zip-archive', () => {
 
 jest.mock('@react-native-documents/picker', () => ({ default: { } }));
 
-// This is one of the icon libraries that react-native-paper attempts to use.
-// Throwing an Error causes react-native-paper to select a different icon library
-// that better supports our automated testing environment.
-jest.doMock('@expo/vector-icons/MaterialCommunityIcons', () => {
-	throw new Error('Not supported in testing environments.');
-}, { virtual: true });
 
 const mockIconLibrary = (libraryName, exportName) => {
 	jest.doMock(libraryName, () => {

@@ -178,7 +178,8 @@ function NoteEditorContent(props: NoteEditorProps) {
 			// Enabling requires an unlocked session, so capture the key the same way a decrypt
 			// does - a pending save can then still encrypt if the session locks before it runs.
 			const noteLockKey = event.isLocked && NoteLockSession.instance().isUnlocked() ? NoteLockSession.instance().decryptedKey() : null;
-			const newFormNote = { ...formNoteRef.current, is_locked: event.isLocked ? 1 : 0, noteLockKey, isDecrypted: event.isLocked };
+			// The form note came from a gated load, so the marker stays true even when disabling.
+			const newFormNote = { ...formNoteRef.current, is_locked: event.isLocked ? 1 : 0, noteLockKey, isDecrypted: true };
 			setFormNote(newFormNote);
 			void scheduleSaveNote(newFormNote);
 		};
@@ -390,7 +391,7 @@ function NoteEditorContent(props: NoteEditorProps) {
 				throw error;
 			}
 		}
-	}, [formNote.id, props.syncUserId, shareCache]);
+	}, [formNote.id, formNote.deleted_time, props.syncUserId, shareCache]);
 
 	const onBodyWillChange = useCallback((event: { changeId: number }) => {
 		handleProvisionalFlag();

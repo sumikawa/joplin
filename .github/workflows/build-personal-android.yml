@@ -5,14 +5,7 @@ on:
   push:
     branches: ['dex', 'android-build-*']
     paths:
-      - '.github/workflows/build-personal-android.yml'
-      - '.github/scripts/verify-personal-apk.py'
-      - 'packages/whisper-voice-typing/android/build.gradle'
-      - '.github/scripts/check-android-launch.py'
-      - 'packages/app-mobile/android/build.gradle'
-      - 'packages/app-mobile/android/gradle.properties'
-      - '.yarn/patches/**'
-      - 'yarn.lock'
+      - 'packages/app-mobile/**'
 
 permissions:
   contents: read

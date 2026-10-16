@@ -84,7 +84,7 @@ function fontFamilyFromSettings() {
 }
 
 function editorTheme(themeId: number) {
-	const fontSizeInPx = Setting.value('style.editor.fontSize');
+	const fontSizeInPx = Setting.value('style.editor.fontSize') + 1;
 
 	// Convert from `px` to `em`. To support font size scaling based on
 	// system accessibility settings, we need to provide font sizes in `em`.

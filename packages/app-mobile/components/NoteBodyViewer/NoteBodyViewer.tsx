@@ -124,7 +124,7 @@ function NoteBodyViewer(props: Props) {
 
 export default connect((state: AppState) => ({
 	themeId: state.settings.theme,
-	fontSize: state.settings['style.viewer.fontSize'],
+	fontSize: state.settings['style.viewer.fontSize'] + 1,
 	pluginStates: state.pluginService.plugins,
 	showNoteLinkIcon: state.settings['notes.showNoteLinkIcon'],
 }))(NoteBodyViewer);

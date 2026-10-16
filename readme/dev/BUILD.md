@@ -56,6 +56,10 @@ First you need to setup React Native to build projects with native code. For thi
 
 ### Android
 
+<!-- cspell:words Pika -->
+
+For the Galaxy Z Fold8 personal DeX build, run `./build-android.sh` from the repository root. It installs dependencies with the immutable lockfile, compiles the mobile app, and builds only the arm64-v8a Release APK using the repository's public debug key. It verifies signing, ZIP alignment, and the native ABI, then saves the APK, SHA-256 file, and build log outside the repository. Use `./build-android.sh --help` for prerequisites and an optional artifact directory. Device installation and GitHub draft Release upload are separate steps.
+
 Root Yarn resolutions keep CodeMirror, Lezer, and ProseMirror on compatible, shared versions so regenerating the lockfile does not introduce conflicting editor types or serializer behavior.
 
 Use the checked-in Gradle wrapper (9.8.1), with JDK 17 or newer. The React Native Gradle plugin also requires a JDK 17 toolchain. The wrapper verifies the downloaded distribution with its pinned SHA-256 checksum.

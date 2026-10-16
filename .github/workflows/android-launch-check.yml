@@ -1,0 +1,55 @@
+name: Android APK launch check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['android-build-*']
+    paths:
+      - '.github/workflows/android-launch-check.yml'
+      - '.github/scripts/check-android-launch.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  launch:
+    if: github.repository == 'sumikawa/joplin'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download the APK reported as crashing
+        uses: actions/download-artifact@v4
+        with:
+          name: joplin-arm64-release-3
+          run-id: 38706078956
+          github-token: ${{ github.token }}
+          path: launch-apk
+
+      - name: Enable KVM for emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch original ARM64 APK on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: python3 .github/scripts/check-android-launch.py
+
+      - name: Upload startup logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-launch-evidence-${{ github.run_number }}
+          path: launch-evidence/
+          if-no-files-found: warn
+          retention-days: 14

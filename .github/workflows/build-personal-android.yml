@@ -1,0 +1,187 @@
+name: Personal Android APK (arm64)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['android-build-*']
+    paths:
+      - '.github/workflows/build-personal-android.yml'
+      - '.github/scripts/verify-personal-apk.py'
+      - 'packages/whisper-voice-typing/android/build.gradle'
+      - '.github/scripts/check-android-launch.py'
+      - 'packages/app-mobile/android/build.gradle'
+      - 'packages/app-mobile/android/gradle.properties'
+      - '.yarn/patches/**'
+      - 'yarn.lock'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    if: github.repository == 'sumikawa/joplin'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: 'true'
+      ARTIFACT_DIR: ${{ github.workspace }}/android-artifacts
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/share/swift /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune -af
+          df -h /
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
+            yarn.lock
+
+      - name: Use repository Yarn
+        run: |
+          mkdir -p "$RUNNER_TEMP/joplin-bin" "$ARTIFACT_DIR/logs"
+          printf '#!/bin/bash\nexec node "%s/.yarn/releases/yarn-4.16.0.cjs" "$@"\n' "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/joplin-bin/yarn"
+          chmod +x "$RUNNER_TEMP/joplin-bin/yarn"
+          echo "$RUNNER_TEMP/joplin-bin" >> "$GITHUB_PATH"
+
+      - uses: actions/cache@v4
+        with:
+          path: .yarn/cache
+          key: personal-android-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: personal-android-yarn-${{ runner.os }}-
+
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;27.1.12297006' 'ndk;28.2.13676358' 'cmake;3.22.1' 2>&1 | tee "$ARTIFACT_DIR/logs/android-sdk.log"
+          mkdir -p "$HOME/.gradle"
+          printf '\norg.gradle.java.installations.paths=%s,%s\n' "$JAVA_HOME_17_X64" "$JAVA_HOME_21_X64" >> "$HOME/.gradle/gradle.properties"
+
+      - name: Install dependencies
+        run: |
+          for attempt in 1 2 3; do
+            if yarn install --immutable --mode=skip-build 2>&1 | tee "$ARTIFACT_DIR/logs/install-$attempt.log"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 15
+          done
+
+      - name: Generate shared packages and mobile assets
+        run: |
+          yarn workspace @joplin/fork-htmlparser2 build
+          yarn workspace @joplin/utils build
+          yarn workspace @joplin/turndown build
+          yarn workspace @joplin/turndown-plugin-gfm build
+          yarn workspace @joplin/whisper-voice-typing build
+          yarn tsc 2>&1 | tee "$ARTIFACT_DIR/logs/typecheck.log"
+          yarn workspace @joplin/app-mobile build 2>&1 | tee "$ARTIFACT_DIR/logs/mobile-assets.log"
+
+      - name: Assemble arm64 Release APK
+        working-directory: packages/app-mobile/android
+        run: |
+          for attempt in 1 2 3; do
+            if ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a \
+              -PJOPLIN_RELEASE_STORE_FILE=debug.keystore \
+              -PJOPLIN_RELEASE_STORE_PASSWORD=android \
+              -PJOPLIN_RELEASE_KEY_ALIAS=androiddebugkey \
+              -PJOPLIN_RELEASE_KEY_PASSWORD=android \
+              --no-daemon --max-workers=3 --console=plain \
+              2>&1 | tee "$ARTIFACT_DIR/logs/gradle-$attempt.log"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 15
+          done
+
+      - name: Verify APK and generate checksum
+        run: python3 .github/scripts/verify-personal-apk.py
+
+      - name: Upload APK and verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: joplin-arm64-release-${{ github.run_number }}
+          path: |
+            android-artifacts/*.apk
+            android-artifacts/*.sha256
+            android-artifacts/verification.json
+            android-artifacts/README.md
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-logs-${{ github.run_number }}
+          path: android-artifacts/logs/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  launch-check:
+    needs: apk
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: joplin-arm64-release-${{ github.run_number }}
+          path: launch-apk
+
+      - name: Enable KVM for emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Check APK startup
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: python3 .github/scripts/check-android-launch.py
+
+      - name: Upload launch evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-launch-evidence-${{ github.run_number }}
+          path: launch-evidence/
+          if-no-files-found: warn
+          retention-days: 14

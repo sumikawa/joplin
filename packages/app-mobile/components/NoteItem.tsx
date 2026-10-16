@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { memo, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, StyleSheet, TextStyle, View, ViewStyle, AccessibilityInfo } from 'react-native';
+import { Text, StyleSheet, TextStyle, View, ViewStyle, AccessibilityInfo, Platform, useWindowDimensions } from 'react-native';
 import Checkbox from './Checkbox';
 import Note from '@joplin/lib/models/Note';
 import time from '@joplin/lib/time';
@@ -32,6 +32,9 @@ interface Props {
 }
 
 const useStyles = (themeId: number, showTopBorder: boolean) => {
+	const { width: windowWidth } = useWindowDimensions();
+	// Use denser rows in large Android windows, including Samsung DeX.
+	const compact = Platform.OS === 'android' && windowWidth >= 769;
 	return useMemo(() => {
 		const theme = themeStyle(themeId);
 
@@ -51,8 +54,8 @@ const useStyles = (themeId: number, showTopBorder: boolean) => {
 			flexGrow: 1,
 			flexShrink: 1,
 			alignSelf: 'stretch',
-			paddingTop: theme.marginTop,
-			paddingBottom: theme.marginBottom,
+			paddingTop: compact ? theme.marginExtraSmall : theme.marginTop,
+			paddingBottom: compact ? theme.marginExtraSmall : theme.marginBottom,
 		};
 		const listItemPressableWithCheckbox: ViewStyle = {
 			...listItemPressable,
@@ -115,7 +118,7 @@ const useStyles = (themeId: number, showTopBorder: boolean) => {
 			},
 			uncheckedOpacityStyle: { },
 		});
-	}, [themeId, showTopBorder]);
+	}, [themeId, showTopBorder, compact]);
 };
 
 const NoteItemComponent: React.FC<Props> = memo(props => {

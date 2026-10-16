@@ -3,7 +3,7 @@ name: Personal Android APK (arm64)
 on:
   workflow_dispatch:
   push:
-    branches: ['android-build-*']
+    branches: ['dex', 'android-build-*']
     paths:
       - '.github/workflows/build-personal-android.yml'
       - '.github/scripts/verify-personal-apk.py'

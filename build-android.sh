@@ -16,6 +16,8 @@ Homebrew). Explicit environment variables take priority.
 Artifacts: APK, SHA-256 file, and build.*.log in the specified directory outside
 the repository, or a new directory under /workspace/artifacts (when present)
 or ${TMPDIR:-/tmp}. Existing APK/checksum files are never overwritten.
+After verification, the APK is also copied to ~/Dropbox/downloads/,
+replacing any APK with the same filename there.
 Uses public debug signing for personal testing. Does not install or publish.
 EOF
     exit 0
@@ -140,5 +142,11 @@ with checksum.open('x') as target:
     target.write(f'{digest}  {destination.name}\n')
 print(f'Verified arm64-v8a APK: {destination}')
 print(f'SHA-256: {checksum}')
+downloads_dir = Path.home() / 'Dropbox' / 'downloads'
+downloads_dir.mkdir(parents=True, exist_ok=True)
+downloads_apk = downloads_dir / destination.name
+if downloads_apk.resolve() != destination.resolve():
+    shutil.copy2(destination, downloads_apk)
+print(f'Copied APK: {downloads_apk}')
 PY
 echo "Build and APK verification completed. Log: $log_file"

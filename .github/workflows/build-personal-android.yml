@@ -23,7 +23,16 @@ concurrency:
 
 jobs:
   apk:
+    name: APK (${{ matrix.label }})
     if: github.repository == 'sumikawa/joplin'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            label: arm64
+          - abi: x86_64
+            label: x86_64-emulator
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     defaults:
@@ -32,6 +41,7 @@ jobs:
     env:
       CI: 'true'
       ARTIFACT_DIR: ${{ github.workspace }}/android-artifacts
+      APK_ABI: ${{ matrix.abi }}
     steps:
       - uses: actions/checkout@v6
 
@@ -110,7 +120,7 @@ jobs:
         working-directory: packages/app-mobile/android
         run: |
           for attempt in 1 2 3; do
-            if ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a \
+            if ./gradlew :app:assembleRelease -PreactNativeArchitectures="$APK_ABI" \
               -PJOPLIN_RELEASE_STORE_FILE=debug.keystore \
               -PJOPLIN_RELEASE_STORE_PASSWORD=android \
               -PJOPLIN_RELEASE_KEY_ALIAS=androiddebugkey \
@@ -129,7 +139,7 @@ jobs:
       - name: Upload APK and verification
         uses: actions/upload-artifact@v4
         with:
-          name: joplin-arm64-release-${{ github.run_number }}
+          name: joplin-${{ matrix.label }}-release-${{ github.run_number }}
           path: |
             android-artifacts/*.apk
             android-artifacts/*.sha256
@@ -143,7 +153,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-logs-${{ github.run_number }}
+          name: android-build-logs-${{ matrix.label }}-${{ github.run_number }}
           path: android-artifacts/logs/
           if-no-files-found: ignore
           retention-days: 14
@@ -157,7 +167,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: joplin-arm64-release-${{ github.run_number }}
+          name: joplin-x86_64-emulator-release-${{ github.run_number }}
           path: launch-apk
 
       - name: Enable KVM for emulator
@@ -169,7 +179,7 @@ jobs:
       - name: Check APK startup
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 36
           arch: x86_64
           target: google_apis
           profile: pixel_2

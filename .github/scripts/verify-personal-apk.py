@@ -1,4 +1,4 @@
-"""Validate the personal arm64 APK before making it available as an artifact."""
+"""Validate the device or emulator APK before uploading it as an artifact."""
 
 import hashlib
 import json
@@ -16,7 +16,12 @@ output.mkdir(parents=True, exist_ok=True)
 tools = Path(os.environ['ANDROID_HOME']) / 'build-tools/36.0.0'
 metadata = json.loads((source.parent / 'output-metadata.json').read_text())
 version = metadata['elements'][0]['versionName']
-apk = output / f'joplin-{version}-arm64-release.apk'
+expected_abi = os.environ.get('APK_ABI', 'arm64-v8a')
+if expected_abi not in ('arm64-v8a', 'x86_64'):
+    raise ValueError(f'Unsupported build ABI: {expected_abi}')
+label = 'arm64' if expected_abi == 'arm64-v8a' else 'x86_64'
+device = 'Galaxy ZFold 8 / Samsung DeX' if expected_abi == 'arm64-v8a' else 'Android x86_64 emulator (testing only)'
+apk = output / f'joplin-{version}-{label}-release.apk'
 shutil.copy2(source, apk)
 
 for name, args in [
@@ -31,7 +36,7 @@ for name, args in [
 with zipfile.ZipFile(apk) as archive:
     libraries = [n for n in archive.namelist() if n.startswith('lib/') and n.endswith('.so')]
     abis = sorted({n.split('/')[1] for n in libraries})
-    if abis != ['arm64-v8a']:
+    if abis != [expected_abi]:
         raise RuntimeError(f'Unexpected APK architectures: {abis}')
     if 'assets/index.android.bundle' not in archive.namelist():
         raise RuntimeError('APK is missing its JavaScript bundle')
@@ -54,8 +59,8 @@ report = {
 (output / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
 description = f'''# Joplin {version} personal Android build
 
-- Device: Galaxy ZFold 8 / Samsung DeX
-- ABI: arm64-v8a only
+- Device: {device}
+- ABI: {expected_abi} only
 - Source commit: {commit}
 - Signature: public Android Debug key (personal testing)
 - Verified: signature, 16KB ZIP alignment, ABI, JavaScript bundle

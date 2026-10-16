@@ -44,6 +44,7 @@ apply from: '../nitrogen/generated/android/WhisperVoiceTyping+autolinking.gradle
 
 android {
   namespace "com.margelo.nitro.whispervoicetyping"
+  ndkVersion getExtOrDefault("ndkVersion")
 
   compileSdkVersion getExtOrDefault("compileSdkVersion")
 

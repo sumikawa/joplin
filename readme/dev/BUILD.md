@@ -56,9 +56,11 @@ First you need to setup React Native to build projects with native code. For thi
 
 ### Android
 
+Root Yarn resolutions keep CodeMirror, Lezer, and ProseMirror on compatible, shared versions so regenerating the lockfile does not introduce conflicting editor types or serializer behavior.
+
 Use the checked-in Gradle wrapper (9.8.1), with JDK 17 or newer. The React Native Gradle plugin also requires a JDK 17 toolchain. The wrapper verifies the downloaded distribution with its pinned SHA-256 checksum.
 
-The Android build uses Android Gradle Plugin 9.2.1 and Kotlin 2.4.10. Yarn patches keep the React Native and Expo build plugins compatible with these APIs and Gradle's embedded Kotlin, and replace JCenter in legacy native modules. Install dependencies with Yarn so these patches are applied before running Gradle. The mobile app uses React Native 0.86.3, React 19.2.3 (matching the native renderer), and Expo SDK 57. React Native 0.86 and Expo 57 require the legacy Android DSL and external Kotlin plugin; `gradle.properties` retains them through `android.newDsl=false` and `android.builtInKotlin=false`. Expo's optional Pika compile-time optimization is disabled (`expo.enableCompileTimeOptimization=false`) because its compiler artifacts are tied to Expo's Kotlin versions; modules use their runtime reflection path with Kotlin 2.4.10.
+The Android build uses Android Gradle Plugin 9.2.1 and Kotlin 2.4.10. Yarn patches keep the React Native and Expo build plugins compatible with these APIs and Gradle's embedded Kotlin, and replace JCenter in legacy native modules. Install dependencies with Yarn so these patches are applied before running Gradle. The mobile app uses React Native 0.86.3, React 19.2.3 (matching the native renderer), and Expo SDK 57. React Native 0.86 and Expo 57 require the legacy Android DSL and external Kotlin plugin; `gradle.properties` retains them through `android.newDsl=false` and `android.builtInKotlin=false`. Expo's optional Pika compile-time optimization is disabled (`expo.enableCompileTimeOptimization=false`) because its compiler artifacts are tied to Expo's Kotlin versions; modules use their runtime reflection path with Kotlin 2.4.10. The Expo core patch also falls back to reflection when return-type introspection is unavailable, matching its existing type-descriptor fallback.
 
 Expo SDK 57 requires iOS 16.4 or later. After upgrading dependencies, run `pod install` on macOS to update the native iOS dependencies.
 

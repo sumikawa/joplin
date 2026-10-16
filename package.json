@@ -154,6 +154,13 @@
     "@react-native/gradle-plugin@npm:0.86.3": "patch:@react-native/gradle-plugin@npm%3A0.86.3#~/.yarn/patches/@react-native-gradle-plugin-npm-0.86.3-4fa1f7c9e1.patch",
     "expo-modules-autolinking@npm:~57.0.13": "patch:expo-modules-autolinking@npm%3A57.0.13#~/.yarn/patches/expo-modules-autolinking-npm-57.0.13-36a0de036d.patch",
     "expo-modules-core@npm:~57.0.20": "patch:expo-modules-core@npm%3A57.0.20#~/.yarn/patches/expo-modules-core-npm-57.0.20-ebd8a98eb8.patch",
-    "@types/react": "19.2.18"
+    "@types/react": "19.2.18",
+    "@lezer/common": "1.5.0",
+    "@lezer/highlight": "1.2.3",
+    "@lezer/markdown": "1.6.3",
+    "prosemirror-model": "1.25.3",
+    "prosemirror-state": "1.4.3",
+    "prosemirror-transform": "1.11.0",
+    "prosemirror-view": "1.40.0"
   }
 }

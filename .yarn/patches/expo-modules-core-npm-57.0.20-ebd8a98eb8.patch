@@ -57,3 +57,26 @@ index 9bfae8d7961d6f63c1b17c1b0d4f01557e15a424..dce3c94a7e85494ef6fba36577fff4a1
  }
  
  internal fun LibraryExtension.applyLinterOptions() {
+diff --git a/android/src/main/java/expo/modules/kotlin/types/ReturnType.kt b/android/src/main/java/expo/modules/kotlin/types/ReturnType.kt
+--- a/android/src/main/java/expo/modules/kotlin/types/ReturnType.kt
++++ b/android/src/main/java/expo/modules/kotlin/types/ReturnType.kt
+@@ -74,11 +74,14 @@
+ 
+   val converter: JSTypeConverter<*> = getDirectConverter(klass) ?: getIndirectConverter(
+     klass,
+-    if (isIntrospectable<T>()) {
+-      introspectionOf<T>()
+-    } else {
+-      null
+-    }
++    // Match typeDescriptorOf's reflection fallback when Pika is disabled.
++    runCatching {
++      if (isIntrospectable<T>()) {
++        introspectionOf<T>()
++      } else {
++        null
++      }
++    }.getOrNull()
+   )
+ 
+   return ReturnType(converter).also {

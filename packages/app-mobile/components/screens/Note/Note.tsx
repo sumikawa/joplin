@@ -150,6 +150,7 @@ interface Props extends BaseProps {
 	canPublish: boolean;
 	noteVisiblePanes: string[];
 	dexSplitPreview?: boolean;
+	textLayoutKey?: string;
 	noteLockSessionUnlocked: boolean;
 }
 
@@ -1943,6 +1944,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 				bodyComponent =
 					!note || !note.body.trim() ? null : (
 						<NoteBodyViewer
+							key={this.props.textLayoutKey}
 							style={this.styles().noteBodyViewer}
 							paddingBottom={150}
 							noteBody={note.body}
@@ -2040,6 +2042,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 
 		if (this.props.dexSplitPreview && this.props.editorType === EditorType.Markdown && !noteLockPanelVisible && !editorView) {
 			const preview = !note || !note.body.trim() ? null : <NoteBodyViewer
+				key={this.props.textLayoutKey}
 				style={this.styles().noteBodyViewer}
 				paddingBottom={150}
 				noteBody={note.body}
@@ -2079,6 +2082,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 
 		const titleComp = <>
 			<View
+				key={this.props.textLayoutKey}
 				style={titleContainerStyle}
 				onLayout={(e) => {
 					const width = e.nativeEvent.layout.width;
@@ -2233,7 +2237,7 @@ const NoteScreenWrapper = (props: Props) => {
 	);
 };
 
-const NoteScreen = connect((state: AppState, ownProps: Pick<Props, 'dexSplitPreview'>) => {
+const NoteScreen = connect((state: AppState, ownProps: Pick<Props, 'dexSplitPreview'|'textLayoutKey'>) => {
 	const whenClause = stateToWhenClauseContext(state);
 	return {
 		windowId: state.windowId,
@@ -2244,8 +2248,8 @@ const NoteScreen = connect((state: AppState, ownProps: Pick<Props, 'dexSplitPrev
 		searchQuery: state.searchQuery,
 		themeId: state.settings.theme,
 		editorFont: state.settings['style.editor.fontFamily'] as number,
-		editorFontSize: state.settings['style.editor.fontSize'],
-		viewerFontSize: state.settings['style.viewer.fontSize'],
+		editorFontSize: state.settings['style.editor.fontSize'] + 1,
+		viewerFontSize: state.settings['style.viewer.fontSize'] + 1,
 		toolbarEnabled: state.settings['editor.mobile.toolbarEnabled'],
 		ftsEnabled: state.settings['db.ftsEnabled'],
 		sharedData: state.sharedData,

@@ -8,6 +8,9 @@ interface DexModeNativeModule {
 interface DexWindowState {
 	isDexMode: boolean;
 	windowWidth: number;
+	densityDpi?: number;
+	fontScale?: number;
+	textLayoutRevision?: number;
 }
 
 export const minDexWindowWidth = 850;
@@ -50,7 +53,10 @@ const useDexMode = () => {
 		};
 	}, []);
 
-	return windowState;
+	return {
+		...windowState,
+		textLayoutKey: `${windowState.densityDpi ?? 0}:${windowState.fontScale ?? 1}:${windowState.textLayoutRevision ?? 0}`,
+	};
 };
 
 export default useDexMode;

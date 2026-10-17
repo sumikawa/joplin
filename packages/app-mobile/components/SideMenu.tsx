@@ -13,7 +13,7 @@ const dexSidebarStyles = StyleSheet.create({
 	root: { flex: 1, flexDirection: 'row' },
 	menu: { width: 250 },
 	compactMenu: { width: 180 },
-	content: { flex: 1 },
+	content: { flex: 1, transform: [{ translateX: 0 }] },
 });
 
 export enum SideMenuPosition {
@@ -184,7 +184,7 @@ const useAnimations = ({ menuWidth, isLeftMenu, open }: UseAnimationsProps) => {
 
 const SideMenuComponent: React.FC<Props> = props => {
 	const [open, setIsOpen] = useState(false);
-	const { isDexMode: dexMode, windowWidth } = useDexMode();
+	const { isDexMode: dexMode, windowWidth, textLayoutKey } = useDexMode();
 	const isDexLayout = dexMode && windowWidth >= minDexWindowWidth;
 
 	useEffect(() => {
@@ -296,6 +296,7 @@ const SideMenuComponent: React.FC<Props> = props => {
 	const styles = useStyles({ themeId: props.themeId, menuOpenFraction, menuWidth, isLeftMenu });
 	const menuComponent = (
 		<AccessibleView
+			key={textLayoutKey}
 			inert={!isDexLayout && !open}
 			style={isDexLayout ? windowWidth < 1100 ? dexSidebarStyles.compactMenu : dexSidebarStyles.menu : styles.menuWrapper}
 			testID='menu-wrapper'

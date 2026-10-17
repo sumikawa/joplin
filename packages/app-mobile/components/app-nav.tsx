@@ -43,7 +43,7 @@ const useStyles = (theme: Theme) => {
 const AppNavComponent: React.FC<Props> = (props) => {
 	const keyboardState = useKeyboardState();
 	const safeAreaPadding = useSafeAreaInsets();
-	const { isDexMode: dexMode, windowWidth } = useDexMode();
+	const { isDexMode: dexMode, windowWidth, textLayoutKey } = useDexMode();
 	const isDexLayout = Platform.OS === 'android' && dexMode && windowWidth >= minDexWindowWidth;
 
 	if (!props.route) throw new Error('Route must not be null');
@@ -91,12 +91,13 @@ const AppNavComponent: React.FC<Props> = (props) => {
 			enabled={keyboardAvoidingViewEnabled}
 		>
 			<View style={isDexLayout ? styles.dexRoot : styles.mobileRoot}>
-				<View style={isDexLayout ? [styles.dexNotes, windowWidth < 1100 && styles.dexNotesCompact] : listPaneVisible ? styles.mobilePane : styles.hiddenPane}>
+				{/* Recreate list text measured on the previous display, while preserving the note pane. */}
+				<View key={textLayoutKey} style={isDexLayout ? [styles.dexNotes, windowWidth < 1100 && styles.dexNotesCompact] : listPaneVisible ? styles.mobilePane : styles.hiddenPane}>
 					<NotesScreen visible={isDexLayout ? !isSearchPane : notesScreenVisible} dexLayout={isDexLayout} />
 					{searchScreenLoaded && <SearchScreen visible={isDexLayout ? isSearchPane : searchScreenVisible} />}
 				</View>
 				<View style={isDexLayout ? styles.dexWorkspace : listPaneVisible ? styles.hiddenPane : styles.mobilePane}>
-					{Screen && <Screen navigation={{ state: route }} themeId={props.themeId} dispatch={props.dispatch} {...(isNoteRoute ? { dexSplitPreview: isDexLayout } : {})} />}
+					{Screen && <Screen navigation={{ state: route }} themeId={props.themeId} dispatch={props.dispatch} {...(isNoteRoute ? { dexSplitPreview: isDexLayout, textLayoutKey } : {})} />}
 					{isDexLayout && listPaneVisible && <View style={styles.dexNotePane} />}
 				</View>
 			</View>

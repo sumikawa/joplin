@@ -1,4 +1,5 @@
 import * as React from 'react';
+import useDexMode from '../../utils/useDexMode';
 import { PureComponent, ReactElement } from 'react';
 import { connect } from 'react-redux';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
@@ -761,7 +762,7 @@ class ScreenHeaderComponent extends PureComponent<ScreenHeaderProps, ScreenHeade
 	};
 }
 
-const ScreenHeader = connect((state: State) => {
+const ConnectedScreenHeader = connect((state: State) => {
 	return {
 		historyCanGoBack: state.historyCanGoBack,
 		locale: state.settings.locale,
@@ -774,6 +775,11 @@ const ScreenHeader = connect((state: State) => {
 		plugins: state.pluginService.plugins,
 	};
 })(ScreenHeaderComponent);
+
+const ScreenHeader = (props: React.ComponentProps<typeof ConnectedScreenHeader>) => {
+	const { textLayoutKey } = useDexMode();
+	return <ConnectedScreenHeader {...props} key={textLayoutKey} />;
+};
 
 export default ScreenHeader;
 export { ScreenHeader };

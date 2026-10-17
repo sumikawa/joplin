@@ -1,4 +1,5 @@
 import * as React from 'react';
+import useDexMode from '../../utils/useDexMode';
 import { AppState } from '../../utils/types';
 import { connect } from 'react-redux';
 import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
@@ -81,6 +82,7 @@ const useSettingButtonInfo = (setSettingsVisible: SetSettingsVisible) => {
 };
 
 const EditorToolbar: React.FC<Props> = props => {
+	const { textLayoutKey } = useDexMode();
 
 	const buttonInfos: ToolbarButtonInfo[] = [];
 
@@ -128,6 +130,7 @@ const EditorToolbar: React.FC<Props> = props => {
 
 	return <>
 		<ScrollView
+			key={textLayoutKey}
 			ref={scrollViewRef}
 			horizontal={true}
 			style={styles.content}

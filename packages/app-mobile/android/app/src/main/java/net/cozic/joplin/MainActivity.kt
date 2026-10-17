@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.content.Intent
 import android.view.View
+import android.view.ViewTreeObserver
 import com.facebook.react.ReactApplication
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.uimanager.DisplayMetricsHolder
@@ -19,6 +20,25 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : ReactActivity() {
+
+  private val displayMetricsPreDrawListener = ViewTreeObserver.OnPreDrawListener {
+    val expected = resources.displayMetrics
+    val cached = DisplayMetricsHolder.getScreenDisplayMetrics()
+    if (cached.densityDpi != expected.densityDpi || cached.scaledDensity != expected.scaledDensity) {
+      // ReactRootView's rotation listener also resets metrics from the phone's
+      // application context during global layout, after configuration callbacks.
+      // Repair after global layout and rebuild chrome before drawing the frame.
+      Log.i("JoplinDex", "Repairing late display metrics: ${cached.densityDpi} -> ${expected.densityDpi}")
+      syncDisplayMetrics()
+      DexModeDetector.advanceTextLayoutRevision()
+      emitDexMode(resources.configuration)
+      window.decorView.requestLayout()
+      window.decorView.postInvalidateOnAnimation()
+      false
+    } else {
+      true
+    }
+  }
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -31,12 +51,25 @@ class MainActivity : ReactActivity() {
    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
-      ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled))
+      ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          object : DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled) {
+              override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+                  syncDisplayMetrics()
+                  super.onConfigurationChanged(newConfig)
+                  // Expo dispatches this delegate asynchronously, after the Activity's
+                  // callback returns. RN refreshes PixelUtil from its application context
+                  // here, so restore Activity metrics after that refresh as well.
+                  syncDisplayMetrics()
+                  emitDexMode(newConfig)
+              }
+          })
 
   override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+    // Android has already updated this Activity's Resources. Update PixelUtil
+    // before React Native measures the new surface, not only after dispatch.
+    syncDisplayMetrics()
     super.onConfigurationChanged(newConfig)
     syncDisplayMetrics()
-    emitDexMode(newConfig)
   }
 
   override fun onResume() {
@@ -74,6 +107,7 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     syncDisplayMetrics()
+    window.decorView.viewTreeObserver.addOnPreDrawListener(displayMetricsPreDrawListener)
     
     if (Build.VERSION.SDK_INT >= 35) {
         val rootView = findViewById<View>(android.R.id.content)
@@ -88,5 +122,10 @@ class MainActivity : ReactActivity() {
           insets
       }
     }
+  }
+
+  override fun onDestroy() {
+    window.decorView.viewTreeObserver.removeOnPreDrawListener(displayMetricsPreDrawListener)
+    super.onDestroy()
   }
 }

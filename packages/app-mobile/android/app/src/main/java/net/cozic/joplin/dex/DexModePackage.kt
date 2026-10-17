@@ -62,11 +62,20 @@ class DexModeModule(context: ReactApplicationContext) : ReactContextBaseJavaModu
 }
 
 object DexModeDetector {
+    private var textLayoutRevision = 0
+
+    fun advanceTextLayoutRevision() {
+        textLayoutRevision++
+    }
+
     fun windowState(activity: Activity, configuration: Configuration): WritableMap = Arguments.createMap().apply {
         putBoolean("isDexMode", isDexWindow(activity, configuration))
         // Activity resources follow its display; React Native's global Dimensions may still
         // describe the phone display or the previous size after an external-display resize.
         putInt("windowWidth", configuration.screenWidthDp)
+        putInt("densityDpi", activity.resources.displayMetrics.densityDpi)
+        putDouble("fontScale", configuration.fontScale.toDouble())
+        putInt("textLayoutRevision", textLayoutRevision)
     }
 
     fun isDexWindow(activity: Activity, configuration: Configuration): Boolean {

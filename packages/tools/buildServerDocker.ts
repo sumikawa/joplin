@@ -151,7 +151,7 @@ async function main() {
 	console.info('isPreRelease:', isPreRelease);
 	console.info('Docker tags:', dockerTags.join(', '));
 
-	const cliArgs = ['--progress=plain'];
+	const cliArgs = ['--progress=plain', '--pull'];
 	cliArgs.push(`--platform ${platform}`);
 	cliArgs.push(...dockerTags.map(tag => `--tag "${repository}:${architecture}-${tag}"`));
 	cliArgs.push(...buildArgs.map(arg => `--build-arg ${arg}`));

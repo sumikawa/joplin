@@ -17,7 +17,7 @@
 
 ## 前提
 
-- Node.js 22.19 以上、Yarn 4.16.0。
+- Node.js 24.22.1、Yarn 4.16.0。Node.js 22 系を使う場合も、2026年10月の脆弱性修正を含む 22.23.4 以上を使ってください。
 - JDK 21 を推奨。React Native Gradle plugin 用の JDK 17 toolchain も必要です。
 - Android SDK Platform 36、Build Tools 36.0.0、NDK 27.1.12297006。ネイティブ依存が追加で要求する NDK や CMake も準備してください。
 - `ANDROID_HOME` と `JAVA_HOME` を設定し、チェックイン済み Gradle wrapper を使ってください。現在の構成は Gradle 9.8.1、AGP 9.2.1、Kotlin 2.4.10、React 19.2.3、React Native 0.86.3、Expo SDK 57 です。

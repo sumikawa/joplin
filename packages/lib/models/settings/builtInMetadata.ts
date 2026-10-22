@@ -2450,7 +2450,7 @@ const builtInMetadata = (Setting: typeof SettingType) => {
 		// There have been requests to allow disabling the voice typing feature at build time. This
 		// feature flag allows doing so, by changing the default `value` from `true` to `false`:
 		'buildFlag.voiceTypingEnabled': {
-			value: true,
+			value: false,
 			type: SettingItemType.Bool,
 			public: false,
 			appTypes: [AppType.Mobile],

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CameraDirection } from '@joplin/lib/models/settings/builtInMetadata';
-import { BarcodeSettings, CameraMountError, CameraRatio, CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraMountError, CameraRatio, CameraView, useCameraPermissions } from 'expo-camera';
 import { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import useAsyncEffect from '@joplin/lib/hooks/useAsyncEffect';
 import { CameraRef, Props } from './types';
@@ -8,11 +8,6 @@ import { _ } from '@joplin/lib/locale';
 import Logger from '@joplin/utils/Logger';
 
 const logger = Logger.create('Camera/expo');
-
-const barcodeScannerSettings: BarcodeSettings = {
-	// Rocketbook pages use both QR and datamatrix
-	barcodeTypes: ['qr', 'datamatrix'],
-};
 
 const Camera = (props: Props, ref: ForwardedRef<CameraRef>) => {
 	const [camera, setCamera] = useState<CameraView|null>(null);
@@ -84,8 +79,6 @@ const Camera = (props: Props, ref: ForwardedRef<CameraRef>) => {
 		onCameraReady={onCameraReady}
 		onMountError={onMountError}
 		animateShutter={false}
-		barcodeScannerSettings={barcodeScannerSettings}
-		onBarcodeScanned={props.codeScanner.onBarcodeScanned}
 	/> : null;
 };
 

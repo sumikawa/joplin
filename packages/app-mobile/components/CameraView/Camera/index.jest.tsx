@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { ForwardedRef, forwardRef, useCallback, useImperativeHandle } from 'react';
+import { ForwardedRef, forwardRef, useImperativeHandle } from 'react';
 import { CameraRef, Props } from './types';
 import { PrimaryButton } from '../../buttons';
 import { Surface, Text } from 'react-native-paper';
 import shim from '@joplin/lib/shim';
-import { TextInput } from 'react-native';
 
 const Camera = (props: Props, ref: ForwardedRef<CameraRef>) => {
 	useImperativeHandle(ref, () => ({
@@ -24,19 +23,11 @@ const Camera = (props: Props, ref: ForwardedRef<CameraRef>) => {
 		},
 	}), []);
 
-	const onCodeChange = useCallback((data: string) => {
-		props.codeScanner.onBarcodeScanned?.({
-			data,
-			type: 'qr',
-		});
-	}, [props.codeScanner]);
-
 	return <Surface elevation={1}>
 		<Text>Camera mock</Text>
 		<PrimaryButton onPress={props.onPermissionRequestFailure}>Reject permission</PrimaryButton>
 		<PrimaryButton onPress={props.onHasPermission}>Accept permission</PrimaryButton>
 		<PrimaryButton onPress={props.onCameraReady}>On camera ready</PrimaryButton>
-		<TextInput placeholder='QR code data' onChangeText={onCodeChange}/>
 	</Surface>;
 };
 

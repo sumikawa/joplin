@@ -1,10 +1,10 @@
 import * as React from 'react';
 import CameraView from './CameraView';
 import { CameraResult } from './types';
-import { fireEvent, render, screen } from '../../utils/testing/testingLibrary';
+import { render, screen, waitFor } from '../../utils/testing/testingLibrary';
 import createMockReduxStore from '../../utils/testing/createMockReduxStore';
 import TestProviderStack from '../testing/TestProviderStack';
-import { acceptCameraPermission, rejectCameraPermission, setQrCodeData, startCamera } from './utils/testing';
+import { acceptCameraPermission, rejectCameraPermission, startCamera, takePhoto } from './utils/testing';
 
 interface WrapperProps {
 	onPhoto?: (result: CameraResult)=> void;
@@ -44,24 +44,16 @@ describe('CameraView', () => {
 		view.unmount();
 	});
 
-	test('should allow inserting QR code text', async () => {
-		const onInsertBarcode = jest.fn();
-		const view = render(<CameraViewWrapper onInsertBarcode={onInsertBarcode}/>);
+	test('should retain photo capture without barcode scanning controls', async () => {
+		const onPhoto = jest.fn();
+		const view = render(<CameraViewWrapper onPhoto={onPhoto}/>);
 		acceptCameraPermission();
 		startCamera();
 
-		const qrCodeData = 'Test!';
-		setQrCodeData(qrCodeData);
-
-		const qrCodeButton = await screen.findByRole('button', { name: 'QR Code' });
-		expect(qrCodeButton).toBeVisible();
-		fireEvent.press(qrCodeButton);
-
-		const addToNoteButton = await screen.findByRole('button', { name: 'Add to note' });
-		fireEvent.press(addToNoteButton);
-
-		expect(onInsertBarcode).toHaveBeenCalledTimes(1);
-		expect(onInsertBarcode).toHaveBeenCalledWith(qrCodeData);
+		expect(screen.queryByRole('button', { name: 'QR Code' })).toBeNull();
+		await takePhoto();
+		await waitFor(() => expect(onPhoto).toHaveBeenCalledTimes(1));
+		expect(onPhoto).toHaveBeenCalledWith(expect.objectContaining({ type: 'image/svg+xml' }));
 
 		view.unmount();
 	});

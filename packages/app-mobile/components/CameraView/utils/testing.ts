@@ -21,8 +21,3 @@ export const takePhoto = async () => {
 	const takePhotoButton = await screen.findByRole('button', { name: 'Take photo' });
 	fireEvent.press(takePhotoButton);
 };
-
-export const setQrCodeData = (data: string) => {
-	const qrCodeDataInput = screen.getByPlaceholderText('QR code data');
-	fireEvent.changeText(qrCodeDataInput, data);
-};

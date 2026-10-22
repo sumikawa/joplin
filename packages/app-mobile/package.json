@@ -156,7 +156,12 @@
     "autolinking": {
       "exclude": [
         "expo-keep-awake"
-      ]
+      ],
+      "android": {
+        "buildFromSource": [
+          "expo-camera"
+        ]
+      }
     },
     "install": {
       "exclude": [

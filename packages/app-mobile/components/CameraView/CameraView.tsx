@@ -12,8 +12,6 @@ import Setting from '@joplin/lib/models/Setting';
 import { LinkButton, PrimaryButton } from '../buttons';
 import { themeStyle } from '../global-style';
 import fitRectIntoBounds from './utils/fitRectIntoBounds';
-import useBarcodeScanner from './utils/useBarcodeScanner';
-import ScannedBarcodes from './ScannedBarcodes';
 import { CameraRef } from './Camera/types';
 import Camera from './Camera/index';
 import { CameraViewProps } from './types';
@@ -111,8 +109,6 @@ const CameraViewComponent: React.FC<CameraViewProps> = props => {
 		Setting.setValue('camera.ratio', availableRatios[(ratioIndex + 1) % availableRatios.length]);
 	}, [props.cameraRatio, availableRatios]);
 
-	const codeScanner = useBarcodeScanner();
-
 	const onCameraReady = useCallback(() => {
 		logger.debug('Camera ready');
 		setCameraReady(true);
@@ -165,11 +161,6 @@ const CameraViewComponent: React.FC<CameraViewProps> = props => {
 
 				cameraReady={cameraReady}
 			/>
-			<ScannedBarcodes
-				themeId={props.themeId}
-				codeScanner={codeScanner}
-				onInsertCode={props.onInsertBarcode}
-			/>
 		</>;
 	}
 
@@ -181,7 +172,6 @@ const CameraViewComponent: React.FC<CameraViewProps> = props => {
 				cameraType={props.cameraType}
 				ratio={availableRatios.includes(props.cameraRatio) ? props.cameraRatio : undefined}
 				onCameraReady={onCameraReady}
-				codeScanner={codeScanner}
 				onPermissionRequestFailure={onPermissionRequestFailure}
 				onHasPermission={onHasPermission}
 			/>

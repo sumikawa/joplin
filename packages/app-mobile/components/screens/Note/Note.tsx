@@ -110,6 +110,7 @@ type NoteStyles = {
 	toggleSpaceButtonContent: ViewStyle;
 	checkbox: ViewStyle & Pick<TextStyle, 'color'>;
 	markdownButtons: TextStyle;
+	lockedInShareBanner: TextStyle;
 	noteBodyViewerPreview?: ViewStyle;
 	titleContainer?: ViewStyle;
 	titleDivider?: ViewStyle;

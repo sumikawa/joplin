@@ -29,7 +29,6 @@
 
 ```bash
 yarn install --immutable --mode=skip-build
-yarn workspace @joplin/whisper-voice-typing build
 yarn tsc
 yarn workspace @joplin/app-mobile build
 cd packages/app-mobile/android

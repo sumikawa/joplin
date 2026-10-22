@@ -105,7 +105,6 @@ jobs:
           yarn workspace @joplin/utils build
           yarn workspace @joplin/turndown build
           yarn workspace @joplin/turndown-plugin-gfm build
-          yarn workspace @joplin/whisper-voice-typing build
           yarn tsc 2>&1 | tee "$ARTIFACT_DIR/logs/typecheck.log"
           yarn workspace @joplin/app-mobile build 2>&1 | tee "$ARTIFACT_DIR/logs/mobile-assets.log"
 

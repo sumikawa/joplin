@@ -2,7 +2,7 @@
 #
 # This Dockerfile is the same as Dockerfile.transcribe, but:
 #   - The base image is nvidia/cuda (so the CUDA runtime libs are present).
-#   - Node.js 24.22.1 is installed on top of the CUDA base image.
+#   - Node.js 24 is installed on top of the CUDA base image.
 #   - The CUDA build of llama-mtmd-cli is copied from the official llama.cpp
 #     CUDA image (ghcr.io/ggml-org/llama.cpp:full-cuda-b5449). We use a
 #     multi-stage COPY here because llama.cpp does not publish a prebuilt
@@ -30,7 +30,7 @@ RUN apt-get update \
     ca-certificates curl wget \
     python3 tini gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-    && apt-get install -y nodejs=24.22.1-1nodesource1 \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production

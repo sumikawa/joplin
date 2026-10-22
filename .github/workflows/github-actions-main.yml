@@ -157,7 +157,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24.22.1'
+          node-version: '24'
 
       - name: Free disk space
         if: runner.os == 'Linux'

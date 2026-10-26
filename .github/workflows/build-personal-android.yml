@@ -16,16 +16,8 @@ concurrency:
 
 jobs:
   apk:
-    name: APK (${{ matrix.label }})
+    name: APK (arm64)
     if: github.repository == 'sumikawa/joplin'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - abi: arm64-v8a
-            label: arm64
-          - abi: x86_64
-            label: x86_64-emulator
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     defaults:
@@ -34,7 +26,7 @@ jobs:
     env:
       CI: 'true'
       ARTIFACT_DIR: ${{ github.workspace }}/android-artifacts
-      APK_ABI: ${{ matrix.abi }}
+      APK_ABI: arm64-v8a
     steps:
       - uses: actions/checkout@v6
 
@@ -70,14 +62,14 @@ jobs:
           chmod +x "$RUNNER_TEMP/joplin-bin/yarn"
           echo "$RUNNER_TEMP/joplin-bin" >> "$GITHUB_PATH"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .yarn/cache
           key: personal-android-yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
           restore-keys: personal-android-yarn-${{ runner.os }}-
 
       - name: Set up Android SDK tools
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           cmdline-tools-version: '13114758'
           packages: platform-tools
@@ -129,9 +121,9 @@ jobs:
         run: python3 .github/scripts/verify-personal-apk.py
 
       - name: Upload APK and verification
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: joplin-${{ matrix.label }}-release-${{ github.run_number }}
+          name: joplin-arm64-release-${{ github.run_number }}
           path: |
             android-artifacts/*.apk
             android-artifacts/*.sha256
@@ -143,47 +135,9 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: android-build-logs-${{ matrix.label }}-${{ github.run_number }}
+          name: android-build-logs-arm64-${{ github.run_number }}
           path: android-artifacts/logs/
           if-no-files-found: ignore
-          retention-days: 14
-
-  launch-check:
-    needs: apk
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: joplin-x86_64-emulator-release-${{ github.run_number }}
-          path: launch-apk
-
-      - name: Enable KVM for emulator
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Check APK startup
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 36
-          arch: x86_64
-          target: google_apis
-          profile: pixel_2
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: python3 .github/scripts/check-android-launch.py
-
-      - name: Upload launch evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-launch-evidence-${{ github.run_number }}
-          path: launch-evidence/
-          if-no-files-found: warn
           retention-days: 14

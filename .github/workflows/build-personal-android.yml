@@ -58,7 +58,10 @@ jobs:
       - name: Use repository Yarn
         run: |
           mkdir -p "$RUNNER_TEMP/joplin-bin" "$ARTIFACT_DIR/logs"
-          printf '#!/bin/bash\nexec node "%s/.yarn/releases/yarn-4.16.0.cjs" "$@"\n' "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/joplin-bin/yarn"
+          yarn_version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
+          yarn_release="$GITHUB_WORKSPACE/.yarn/releases/yarn-$yarn_version.cjs"
+          test -f "$yarn_release"
+          printf '#!/bin/bash\nexec node "%s" "$@"\n' "$yarn_release" > "$RUNNER_TEMP/joplin-bin/yarn"
           chmod +x "$RUNNER_TEMP/joplin-bin/yarn"
           echo "$RUNNER_TEMP/joplin-bin" >> "$GITHUB_PATH"
 
